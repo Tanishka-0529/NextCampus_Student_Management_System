@@ -1,0 +1,10 @@
+{
+  "name": "nextcampus-student-management",
+  "version": "1.0.0",
+  "description": "Full-stack Student Management System built with Flask, SQLite, and JS Fetch API",
+  "main": "app.py",
+  "scripts": {
+    "start": "python app.py"
+  },
+  "dependencies": {}
+}
