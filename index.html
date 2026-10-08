@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NextCampus | Student Management System</title>
+  
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  
+  <!-- Separate CSS File Link -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+  <!-- Fallback local relative path for standalone preview -->
+  <link rel="stylesheet" href="../static/css/style.css" />
+</head>
+<body>
+
+  <!-- Top Navigation Header -->
+  <header class="app-header">
+    <div class="header-container">
+      <div class="brand-logo">
+        <div class="logo-icon">
+          <i class="fa-solid fa-graduation-cap"></i>
+        </div>
+        <div class="logo-text">
+          <span class="brand-name">Next<span class="brand-accent">Campus</span></span>
+          <span class="brand-sub">Student Management System</span>
+        </div>
+      </div>
+
+      <button class="mobile-toggle" id="mobileToggleBtn" aria-label="Toggle navigation">
+        <i class="fa-solid fa-bars"></i>
+      </button>
+
+      <div class="header-actions" id="headerActions">
+        <div class="stat-pill">
+          <i class="fa-solid fa-users"></i>
+          <span>Total Students: <strong id="totalCountBadge">0</strong></span>
+        </div>
+        <button class="btn btn-primary" id="openAddModalBtn">
+          <i class="fa-solid fa-plus"></i> Add New Student
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="main-container">
+
+    <!-- Metrics Cards -->
+    <section class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon bg-emerald"><i class="fa-solid fa-user-graduate"></i></div>
+        <div class="stat-info">
+          <span class="stat-label">Total Enrolled</span>
+          <h3 id="statTotal">0</h3>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon bg-blue"><i class="fa-solid fa-chart-line"></i></div>
+        <div class="stat-info">
+          <span class="stat-label">Average Marks</span>
+          <h3 id="statAvg">0.0%</h3>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon bg-amber"><i class="fa-solid fa-trophy"></i></div>
+        <div class="stat-info">
+          <span class="stat-label">Top Scorer</span>
+          <h3 id="statTop">N/A</h3>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon bg-teal"><i class="fa-solid fa-layer-group"></i></div>
+        <div class="stat-info">
+          <span class="stat-label">Active Classes</span>
+          <h3 id="statClasses">0</h3>
+        </div>
+      </div>
+    </section>
+
+    <!-- Toolbar Section (Search & Filter) -->
+    <section class="toolbar-card">
+      <div class="search-box">
+        <i class="fa-solid fa-magnifying-glass search-icon"></i>
+        <input 
+          type="text" 
+          id="searchInput" 
+          placeholder="Search student by Name or Roll Number..." 
+          autocomplete="off"
+        />
+        <button class="clear-btn" id="clearSearchBtn" title="Clear Search">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <div class="filter-controls">
+        <select id="classFilterSelect" class="form-select">
+          <option value="ALL">All Classes</option>
+        </select>
+        <button class="btn btn-outline" id="refreshBtn" title="Refresh List">
+          <i class="fa-solid fa-arrows-rotate"></i> Refresh
+        </button>
+      </div>
+    </section>
+
+    <!-- Table Section -->
+    <section class="table-card">
+      <div class="table-responsive">
+        <table class="data-table" id="studentsTable">
+          <thead>
+            <tr>
+              <th>Roll No</th>
+              <th>Student Details</th>
+              <th>Class / Dept</th>
+              <th>Marks (%)</th>
+              <th>Contact</th>
+              <th>Status</th>
+              <th class="text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="studentsTableBody">
+            <!-- Rows rendered dynamically via script.js -->
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Empty State -->
+      <div class="empty-state hidden" id="emptyState">
+        <i class="fa-solid fa-folder-open empty-icon"></i>
+        <h4>No Student Records Found</h4>
+        <p>Try searching with another query or add a new record to the system.</p>
+        <button class="btn btn-primary btn-sm mt-3" id="emptyAddBtn">
+          <i class="fa-solid fa-plus"></i> Add Student
+        </button>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Add / Edit Student Modal -->
+  <div class="modal-backdrop hidden" id="studentModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 id="modalTitle"><i class="fa-solid fa-user-plus"></i> Add New Student</h3>
+        <button class="modal-close" id="closeModalBtn"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <form id="studentForm" novalidate>
+        <input type="hidden" id="studentId" />
+
+        <div class="modal-body">
+          <div class="form-grid">
+
+            <div class="form-group">
+              <label for="rollNo">Roll Number <span class="req">*</span></label>
+              <input type="text" id="rollNo" class="form-input" placeholder="e.g., CS101" required />
+              <small class="error-msg" id="rollNoError"></small>
+            </div>
+
+            <div class="form-group">
+              <label for="studentName">Full Name <span class="req">*</span></label>
+              <input type="text" id="studentName" class="form-input" placeholder="e.g., Alex Johnson" required />
+              <small class="error-msg" id="nameError"></small>
+            </div>
+
+            <div class="form-group">
+              <label for="studentClass">Class / Grade <span class="req">*</span></label>
+              <input type="text" id="studentClass" class="form-input" placeholder="e.g., B.Tech CS - Sem 4" required />
+              <small class="error-msg" id="classError"></small>
+            </div>
+
+            <div class="form-group">
+              <label for="studentMarks">Marks (%) <span class="req">*</span></label>
+              <input type="number" id="studentMarks" class="form-input" min="0" max="100" step="0.1" placeholder="e.g., 88.5" required />
+              <small class="error-msg" id="marksError"></small>
+            </div>
+
+            <div class="form-group">
+              <label for="studentContact">Contact Number <span class="req">*</span></label>
+              <input type="tel" id="studentContact" class="form-input" placeholder="10-digit mobile number" required />
+              <small class="error-msg" id="contactError"></small>
+            </div>
+
+            <div class="form-group">
+              <label for="studentEmail">Email Address</label>
+              <input type="email" id="studentEmail" class="form-input" placeholder="alex@campus.edu" />
+              <small class="error-msg" id="emailError"></small>
+            </div>
+
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-light" id="cancelModalBtn">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="saveStudentBtn">
+            <i class="fa-solid fa-floppy-disk"></i> Save Student
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Delete Confirmation Modal -->
+  <div class="modal-backdrop hidden" id="deleteModal">
+    <div class="modal-card modal-sm">
+      <div class="modal-header bg-danger-light">
+        <h3 class="text-danger"><i class="fa-solid fa-triangle-exclamation"></i> Confirm Deletion</h3>
+        <button class="modal-close" id="closeDeleteModalBtn"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="modal-body text-center py-4">
+        <p>Are you sure you want to delete <strong id="deleteStudentName">this record</strong>?</p>
+        <p class="text-muted text-sm mt-1">This action cannot be undone.</p>
+      </div>
+      <div class="modal-footer flex-center">
+        <button class="btn btn-light" id="cancelDeleteBtn">Cancel</button>
+        <button class="btn btn-danger" id="confirmDeleteBtn">
+          <i class="fa-solid fa-trash"></i> Delete Permanently
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- Footer -->
+  <footer class="app-footer">
+    <p><strong>NextCampus</strong> Student Management System &copy; 2026. Designed for Full-Stack CRUD Demonstration.</p>
+  </footer>
+
+  <!-- Separate JS File Link -->
+  <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+  <!-- Fallback local relative path for standalone preview -->
+  <script src="../static/js/script.js"></script>
+</body>
+</html>
